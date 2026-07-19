@@ -12,21 +12,25 @@ export const authController = {
   register: asyncHandler(async (req, res) => {
     const result = await authService.register(req.body, ctx(req));
     setAuthCookies(res, result);
-    return ApiResponse.created(res, { user: result.user, verifyLink: result.verifyLink }, "Registration successful");
+    return ApiResponse.created(
+      res,
+      { user: result.user, accessToken: result.accessToken, verifyLink: result.verifyLink },
+      "Registration successful"
+    );
   }),
 
   login: asyncHandler(async (req, res) => {
     const result = await authService.login(req.body, ctx(req));
     setAuthCookies(res, result);
     recordAudit(req, { action: AUDIT_ACTIONS.LOGIN, entity: "User", entityId: result.user._id, description: "User logged in" });
-    return ApiResponse.ok(res, { user: result.user }, "Login successful");
+    return ApiResponse.ok(res, { user: result.user, accessToken: result.accessToken }, "Login successful");
   }),
 
   refresh: asyncHandler(async (req, res) => {
     const raw = req.cookies?.[env.cookie.refreshName] || req.body?.refreshToken;
     const result = await authService.refresh(raw, ctx(req));
     setAuthCookies(res, result);
-    return ApiResponse.ok(res, { user: result.user }, "Token refreshed");
+    return ApiResponse.ok(res, { user: result.user, accessToken: result.accessToken }, "Token refreshed");
   }),
 
   logout: asyncHandler(async (req, res) => {
