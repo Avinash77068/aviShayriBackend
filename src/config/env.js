@@ -32,6 +32,8 @@ const toBool = (value, fallback = false) => {
 };
 
 const isVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_URL);
+const isCrossSiteAuth = isVercel || process.env.NODE_ENV === "production";
+const cookieSameSite = process.env.COOKIE_SAMESITE || (isCrossSiteAuth ? "none" : "lax");
 
 export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
@@ -65,8 +67,8 @@ export const env = {
   // Cookies
   cookie: {
     domain: process.env.COOKIE_DOMAIN || undefined,
-    secure: toBool(process.env.COOKIE_SECURE, isVercel || process.env.NODE_ENV === "production"),
-    sameSite: isVercel || process.env.NODE_ENV === "production" ? "none" : (process.env.COOKIE_SAMESITE || "lax"),
+    secure: toBool(process.env.COOKIE_SECURE, isCrossSiteAuth || cookieSameSite === "none"),
+    sameSite: cookieSameSite,
     accessName: process.env.ACCESS_COOKIE_NAME || "access_token",
     refreshName: process.env.REFRESH_COOKIE_NAME || "refresh_token",
   },
