@@ -64,7 +64,7 @@ export const env = {
   cookie: {
     domain: process.env.COOKIE_DOMAIN || undefined,
     secure: toBool(process.env.COOKIE_SECURE, process.env.NODE_ENV === "production"),
-    sameSite: process.env.COOKIE_SAMESITE || "lax",
+    sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === "production" ? "none" : "lax"),
     accessName: process.env.ACCESS_COOKIE_NAME || "access_token",
     refreshName: process.env.REFRESH_COOKIE_NAME || "refresh_token",
   },
