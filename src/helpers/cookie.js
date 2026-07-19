@@ -1,10 +1,12 @@
 import env from "../config/env.js";
 import { durationToMs } from "../utils/token.js";
 
+const isCrossSite = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_URL) || env.nodeEnv === "production";
+
 const base = () => ({
   httpOnly: true,
-  secure: env.cookie.secure,
-  sameSite: env.cookie.sameSite,
+  secure: true,
+  sameSite: isCrossSite ? "none" : env.cookie.sameSite,
   domain: env.cookie.domain,
   path: "/",
 });
