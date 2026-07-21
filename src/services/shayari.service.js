@@ -6,6 +6,7 @@ import {
   reactionRepository,
   userRepository,
 } from "../repositories/index.js";
+import { DETAIL_POPULATE } from "../repositories/shayari.repository.js";
 import { Shayari, Author, Tag, Category } from "../models/index.js";
 import { uniqueSlug } from "../utils/slug.js";
 import { parsePagination, buildMeta, parseSort } from "../utils/pagination.js";
@@ -71,12 +72,7 @@ export const shayariService = {
       limit,
       skip,
       sort,
-      populate: [
-        { path: "category", select: "name slug color icon" },
-        { path: "tags", select: "name slug" },
-        { path: "author", select: "name slug avatar" },
-        { path: "language", select: "name code nativeName" },
-      ],
+      populate: DETAIL_POPULATE,
     });
     return { items, meta: buildMeta(total, page, limit) };
   },
@@ -218,14 +214,14 @@ export const shayariService = {
   async trending(limit = 12) {
     return shayariRepository.find(
       { status: STATUS.PUBLISHED, trending: true },
-      { sort: { popularityScore: -1, views: -1 }, limit, populate: [{ path: "category", select: "name slug" }] }
+      { sort: { popularityScore: -1, views: -1 }, limit, populate: DETAIL_POPULATE }
     );
   },
 
   async latest(limit = 12) {
     return shayariRepository.find(
       { status: STATUS.PUBLISHED },
-      { sort: { publishedAt: -1 }, limit, populate: [{ path: "category", select: "name slug" }] }
+      { sort: { publishedAt: -1 }, limit, populate: DETAIL_POPULATE }
     );
   },
 
@@ -243,7 +239,7 @@ export const shayariService = {
     const dayIndex = Math.floor(start.getTime() / 86400000) % total;
     const [pick] = await shayariRepository.find(
       { status: STATUS.PUBLISHED },
-      { sort: { createdAt: 1 }, skip: dayIndex, limit: 1, populate: [{ path: "category", select: "name slug" }] }
+      { sort: { createdAt: 1 }, skip: dayIndex, limit: 1, populate: DETAIL_POPULATE }
     );
     return pick || null;
   },

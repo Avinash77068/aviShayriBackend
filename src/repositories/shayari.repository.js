@@ -5,6 +5,8 @@ const DETAIL_POPULATE = [
   { path: "category", select: "name slug color icon" },
   { path: "tags", select: "name slug" },
   { path: "author", select: "name slug avatar" },
+  // The submitting user — shown as the author when no dedicated poet is set.
+  { path: "createdBy", select: "name avatar" },
   { path: "language", select: "name code nativeName direction" },
 ];
 
