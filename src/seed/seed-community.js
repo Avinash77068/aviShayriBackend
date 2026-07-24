@@ -1,22 +1,4 @@
-/* eslint-disable no-console */
-/**
- * Community seed — inserts a set of shayari, each authored by a DIFFERENT user,
- * so the site shows varied writer names (via `createdBy`) instead of one admin.
- *
- * Run:
- *   npm run seed:community            # insert (idempotent — safe to re-run)
- *   npm run seed:community -- --destroy  # remove ONLY what this script created
- *
- * Which database it writes to:
- *   It uses the SAME connection as the app (config/db.js), i.e. MONGODB_URI.
- *   - Local .env  -> your local/dev DB (won't show on the live site).
- *   - To seed the LIVE site, run with the production URI, e.g.:
- *       MONGODB_URI="<prod-mongodb-uri>" npm run seed:community
- *     (the db.js guard still blocks the company `revv-staging` cluster).
- *
- * To use your OWN shayari: replace the objects in the SHAYARI array below.
- * `by` is an index into the USERS array (which user "wrote" that shayari).
- */
+
 import env from "../config/env.js";
 import { connectDB, disconnectDB } from "../config/db.js";
 import logger from "../config/logger.js";
@@ -25,8 +7,7 @@ import { toSlug, uniqueSlug } from "../utils/slug.js";
 import { calcReadingTime } from "../utils/readingTime.js";
 import { ROLES, STATUS, USER_STATUS } from "../constants/index.js";
 
-// A tag stamped on every doc this script creates, so --destroy can clean up
-// precisely without touching hand-written or admin-seeded content.
+
 const SEED_MARK = "community-seed";
 
 // ---------------------------------------------------------------------------
@@ -45,10 +26,7 @@ const USERS = [
   { name: "Zoya Ansari", email: "zoya.ansari@shayari-community.app" },
 ];
 
-// ---------------------------------------------------------------------------
-// 2) The shayari. `by` = index into USERS. `cat` must match a category below.
-//    Replace this whole array with your own content whenever you like.
-// ---------------------------------------------------------------------------
+
 const SHAYARI = [
   { title: "Hans Kar Jeena", content: "हंसकर जीना ही दस्तूर है ज़िंदगी का,\nएक यही किस्सा मशहूर है ज़िंदगी का।", cat: "Life", tags: ["zindagi", "khushi"], lang: "hi", by: 0 },
   { title: "Jeet Aur Haar", content: "ज़िंदगी में जीत और हार हमारी सोच बनाती है,\nजो मान लेता है वह हार जाता है, जब ठान लेता है वह जीत जाता है।", cat: "Motivational", tags: ["zindagi", "umeed"], lang: "hi", by: 1 },
