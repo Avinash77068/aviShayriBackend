@@ -30,6 +30,9 @@ export const shayariController = {
 
   todays: asyncHandler(async (_req, res) => {
     const data = await shayariService.todays();
+    // The pick is stable for the whole day, so cache it at the CDN edge —
+    // repeat visits get served without re-running the count+skip query.
+    res.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=1800");
     return ApiResponse.ok(res, data, "Today's shayari");
   }),
 
