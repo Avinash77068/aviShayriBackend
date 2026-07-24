@@ -71,6 +71,7 @@ export const env = {
     sameSite: cookieSameSite,
     accessName: process.env.ACCESS_COOKIE_NAME || "access_token",
     refreshName: process.env.REFRESH_COOKIE_NAME || "refresh_token",
+    anonName: process.env.ANON_COOKIE_NAME || "anon_id",
   },
 
   // Bcrypt

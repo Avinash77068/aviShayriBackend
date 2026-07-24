@@ -77,7 +77,7 @@ export const shayariService = {
     return { items, meta: buildMeta(total, page, limit) };
   },
 
-  async getBySlug(slug, { user = null, publishedOnly = true } = {}) {
+  async getBySlug(slug, { user = null, anonId = null, publishedOnly = true } = {}) {
     const shayari = await shayariRepository.findBySlug(slug, { publishedOnly });
     if (!shayari) throw ApiError.notFound("Shayari not found");
 
@@ -102,8 +102,9 @@ export const shayariService = {
     const obj = shayari.toObject();
     obj.views += 1;
 
-    if (user) {
-      const reactions = await reactionRepository.find({ user: user._id, shayari: shayari._id });
+    const identityMatch = user ? { user: user._id } : anonId ? { anonId } : null;
+    if (identityMatch) {
+      const reactions = await reactionRepository.find({ ...identityMatch, shayari: shayari._id });
       obj.isLiked = reactions.some((r) => r.type === REACTION.LIKE);
       obj.isBookmarked = reactions.some((r) => r.type === REACTION.BOOKMARK);
     }
@@ -260,22 +261,28 @@ export const shayariService = {
   },
 
   /* -------- Engagement (idempotent toggles) -------- */
-  async toggleReaction(shayariId, userId, type) {
+  /**
+   * `identity` is `{ userId }` for a signed-in visitor or `{ anonId }` for a
+   * signed-out one (see `identifyVisitor` middleware) — exactly one is set.
+   */
+  async toggleReaction(shayariId, identity, type) {
     const shayari = await Shayari.findById(shayariId);
     if (!shayari) throw ApiError.notFound("Shayari not found");
+    if (!identity.userId && !identity.anonId) throw ApiError.unauthorized("Could not identify visitor");
 
     const counterField = { [REACTION.LIKE]: "likes", [REACTION.BOOKMARK]: "bookmarks" }[type];
-    const existing = await reactionRepository.findOne({ user: userId, shayari: shayariId, type });
+    const match = identity.userId ? { user: identity.userId } : { anonId: identity.anonId };
+    const existing = await reactionRepository.findOne({ ...match, shayari: shayariId, type });
 
     if (existing) {
       await reactionRepository.deleteById(existing._id);
       await shayariRepository.incrementCounter(shayariId, counterField, -1);
-      await this._syncUserList(userId, shayariId, type, false);
+      if (identity.userId) await this._syncUserList(identity.userId, shayariId, type, false);
       return { active: false, [counterField]: Math.max(0, shayari[counterField] - 1) };
     }
-    await reactionRepository.create({ user: userId, shayari: shayariId, type });
+    await reactionRepository.create({ ...match, shayari: shayariId, type });
     await shayariRepository.incrementCounter(shayariId, counterField, 1);
-    await this._syncUserList(userId, shayariId, type, true);
+    if (identity.userId) await this._syncUserList(identity.userId, shayariId, type, true);
     return { active: true, [counterField]: shayari[counterField] + 1 };
   },
 
@@ -283,6 +290,23 @@ export const shayariService = {
     const field = type === REACTION.LIKE ? "likedShayari" : "bookmarks";
     const op = add ? { $addToSet: { [field]: shayariId } } : { $pull: { [field]: shayariId } };
     await userRepository.updateById(userId, op);
+  },
+
+  /** Favourites list for a signed-out visitor, resolved from their Reaction rows. */
+  async anonBookmarks(anonId, { limit = 60 } = {}) {
+    if (!anonId) return [];
+    const reactions = await reactionRepository.find(
+      { anonId, type: REACTION.BOOKMARK },
+      { sort: { createdAt: -1 }, limit: Number(limit) || 60 }
+    );
+    const ids = reactions.map((r) => r.shayari);
+    if (!ids.length) return [];
+    const docs = await shayariRepository.find(
+      { _id: { $in: ids }, status: STATUS.PUBLISHED },
+      { populate: DETAIL_POPULATE, sort: null }
+    );
+    const order = new Map(ids.map((id, i) => [String(id), i]));
+    return docs.sort((a, b) => order.get(String(a._id)) - order.get(String(b._id)));
   },
 
   async recordShare(shayariId) {

@@ -34,3 +34,13 @@ export const clearAuthCookies = (res) => {
   res.clearCookie(env.cookie.accessName, opts);
   res.clearCookie(env.cookie.refreshName, opts);
 };
+
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
+/**
+ * Identify anonymous visitors so they can like/bookmark without an account.
+ * Same secure/cross-site attributes as the auth cookies, just longer-lived.
+ */
+export const setAnonCookie = (res, anonId) => {
+  res.cookie(env.cookie.anonName, anonId, { ...base(), maxAge: ONE_YEAR_MS });
+};

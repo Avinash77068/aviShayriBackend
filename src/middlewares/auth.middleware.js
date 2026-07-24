@@ -1,8 +1,10 @@
+import crypto from "crypto";
 import env from "../config/env.js";
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { verifyAccessToken } from "../utils/token.js";
 import { userRepository } from "../repositories/index.js";
+import { setAnonCookie } from "../helpers/cookie.js";
 import { USER_STATUS, MESSAGES } from "../constants/index.js";
 
 const extractToken = (req) => {
@@ -50,3 +52,24 @@ export const optionalAuth = asyncHandler(async (req, _res, next) => {
   }
   return next();
 });
+
+/**
+ * Identify a signed-out visitor via a long-lived cookie so they can
+ * like/bookmark without an account. No-op if `req.user` is already set.
+ *
+ * `createIfMissing`: pass true on write actions (like/bookmark), where a
+ * stable identity must be minted so the toggle can be reversed later. Pass
+ * false on read paths (viewing a shayari, listing bookmarks) so a casual
+ * visitor who has never engaged isn't stamped with a cookie just for looking.
+ */
+export const identifyVisitor = (createIfMissing) =>
+  (req, res, next) => {
+    if (req.user) return next();
+    let anonId = req.cookies?.[env.cookie.anonName];
+    if (!anonId && createIfMissing) {
+      anonId = crypto.randomUUID();
+      setAnonCookie(res, anonId);
+    }
+    req.anonId = anonId || null;
+    return next();
+  };

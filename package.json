@@ -11,6 +11,7 @@
     "seed:destroy": "node src/seed/seed.js --destroy",
     "seed:community": "node src/seed/seed-community.js",
     "seed:community:destroy": "node src/seed/seed-community.js --destroy",
+    "migrate:reaction-index": "node src/scripts/migrate-reaction-indexes.js",
     "lint": "eslint .",
     "test": "echo \"No tests yet\" && exit 0"
   },

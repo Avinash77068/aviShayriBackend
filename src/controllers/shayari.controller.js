@@ -47,8 +47,16 @@ export const shayariController = {
   }),
 
   getBySlug: asyncHandler(async (req, res) => {
-    const data = await shayariService.getBySlug(req.params.slug, { user: req.user || null });
+    const data = await shayariService.getBySlug(req.params.slug, {
+      user: req.user || null,
+      anonId: req.anonId || null,
+    });
     return ApiResponse.ok(res, data, "Shayari fetched");
+  }),
+
+  myBookmarks: asyncHandler(async (req, res) => {
+    const data = await shayariService.anonBookmarks(req.anonId, req.query);
+    return ApiResponse.ok(res, data, "Bookmarks fetched");
   }),
 
   create: asyncHandler(async (req, res) => {
@@ -79,14 +87,16 @@ export const shayariController = {
     return ApiResponse.ok(res, result, `Bulk ${req.body.action} complete`);
   }),
 
-  /* -------- Engagement -------- */
+  /* -------- Engagement (signed-in or anonymous) -------- */
   like: asyncHandler(async (req, res) => {
-    const data = await shayariService.toggleReaction(req.params.id, req.user._id, REACTION.LIKE);
+    const identity = req.user ? { userId: req.user._id } : { anonId: req.anonId };
+    const data = await shayariService.toggleReaction(req.params.id, identity, REACTION.LIKE);
     return ApiResponse.ok(res, data, data.active ? "Liked" : "Unliked");
   }),
 
   bookmark: asyncHandler(async (req, res) => {
-    const data = await shayariService.toggleReaction(req.params.id, req.user._id, REACTION.BOOKMARK);
+    const identity = req.user ? { userId: req.user._id } : { anonId: req.anonId };
+    const data = await shayariService.toggleReaction(req.params.id, identity, REACTION.BOOKMARK);
     return ApiResponse.ok(res, data, data.active ? "Bookmarked" : "Removed bookmark");
   }),
 
