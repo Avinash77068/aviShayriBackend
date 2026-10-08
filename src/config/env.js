@@ -101,6 +101,20 @@ export const env = {
     enabled: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER),
   },
 
+  // OpenRouter (AI-generated daily shayari)
+  openRouter: {
+    apiKey: process.env.OPENROUTER_API_KEY,
+    model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
+    siteUrl: process.env.OPENROUTER_SITE_URL || process.env.CLIENT_URL || "http://localhost:3000",
+    siteName: process.env.OPENROUTER_SITE_NAME || "Shayari",
+    dailyCount: toNumber(process.env.AI_SHAYARI_DAILY_COUNT, 1),
+    languageCode: process.env.AI_SHAYARI_LANGUAGE_CODE || "hi",
+    // Set to "draft" to let staff review AI output before it goes live.
+    status: process.env.AI_SHAYARI_STATUS || "published",
+    cron: process.env.AI_SHAYARI_CRON || "*/10 * * * * *",
+    enabled: Boolean(process.env.OPENROUTER_API_KEY),
+  },
+
   // Rate limiting
   rateLimit: {
     windowMs: toNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),

@@ -9,6 +9,7 @@
     "dev": "nodemon server.js",
     "seed": "node src/seed/seed.js",
     "seed:destroy": "node src/seed/seed.js --destroy",
+    "generate:ai-shayari": "node src/scripts/generate-ai-shayari.js",
     "seed:community": "node src/seed/seed-community.js",
     "seed:community:destroy": "node src/seed/seed-community.js --destroy",
     "migrate:reaction-index": "node src/scripts/migrate-reaction-indexes.js",

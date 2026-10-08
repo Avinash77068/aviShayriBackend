@@ -2,6 +2,8 @@ import cron from "node-cron";
 import logger from "../config/logger.js";
 import { recomputeTrending } from "./trending.cron.js";
 import { cleanupTokens } from "./cleanup.cron.js";
+import env from "../config/env.js";
+import { aiShayariService } from "../services/aiShayari.service.js";
 
 const jobs = [];
 
@@ -28,6 +30,19 @@ export const startCronJobs = () => {
   }
   schedule("*/30 * * * *", "trending", recomputeTrending); // every 30 min
   schedule("0 3 * * *", "cleanup", cleanupTokens); // daily at 03:00
+  if (env.openRouter.enabled) {
+    // every 10 sec; skip a tick if the previous generation is still running
+    let generating = false;
+    schedule(env.openRouter.cron, "ai-shayari", async () => {
+      if (generating) return;
+      generating = true;
+      try {
+        await aiShayariService.generateDaily();
+      } finally {
+        generating = false;
+      }
+    });
+  }
   jobs.forEach(({ job }) => job.start());
   logger.info(`[cron] started ${jobs.length} scheduled jobs`);
 };
