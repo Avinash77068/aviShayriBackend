@@ -107,7 +107,7 @@ export const env = {
     model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
     siteUrl: process.env.OPENROUTER_SITE_URL || process.env.CLIENT_URL || "http://localhost:3000",
     siteName: process.env.OPENROUTER_SITE_NAME || "Shayari",
-    dailyCount: toNumber(process.env.AI_SHAYARI_DAILY_COUNT, 1),
+    dailyCount: toNumber(process.env.AI_SHAYARI_DAILY_COUNT, 5),
     languageCode: process.env.AI_SHAYARI_LANGUAGE_CODE || "hi",
     // Keep generated shayari in the approval queue until staff reviews it.
     status: process.env.AI_SHAYARI_STATUS || "pending",
