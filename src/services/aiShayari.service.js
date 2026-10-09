@@ -92,7 +92,8 @@ export const aiShayariService = {
     let created = 0;
     for (const item of items) {
       if (created >= count) break;
-      const content = String(item.content || "").trim();
+      // Models sometimes double-escape newlines, leaving a literal "\\n" in the text.
+      const content = String(item.content || "").replace(/\\n/g, "\n").trim();
       const title = cleanText(item.title || "").slice(0, 200);
       if (!content || !title) continue;
       const full = normalize(content);
@@ -103,12 +104,13 @@ export const aiShayariService = {
 
       const category = catByName.get(String(item.category || "").toLowerCase()) || categories[created % categories.length];
       const slug = await uniqueSlug(title, (s) => Shayari.exists({ slug: s }));
-      const html = content.split("\n").map((l) => cleanText(l)).join("<br/>");
+      // Plain newlines: the frontend renders shayari with `white-space: pre-line`.
+      const body = content.split("\n").map((l) => cleanText(l)).filter(Boolean).join("\n");
 
       await Shayari.create({
         title,
         slug,
-        content: html,
+        content: body,
         excerpt: cleanText(content).slice(0, 200),
         category: category._id,
         author: author._id,
