@@ -109,9 +109,10 @@ export const env = {
     siteName: process.env.OPENROUTER_SITE_NAME || "Shayari",
     dailyCount: toNumber(process.env.AI_SHAYARI_DAILY_COUNT, 1),
     languageCode: process.env.AI_SHAYARI_LANGUAGE_CODE || "hi",
-    // Set to "draft" to let staff review AI output before it goes live.
-    status: process.env.AI_SHAYARI_STATUS || "published",
-    cron: process.env.AI_SHAYARI_CRON || "*/10 * * * * *",
+    // Keep generated shayari in the approval queue until staff reviews it.
+    status: process.env.AI_SHAYARI_STATUS || "pending",
+    cron: process.env.AI_SHAYARI_CRON || "0 0 0 * * *",
+    timezone: process.env.AI_SHAYARI_TIMEZONE || "Asia/Kolkata",
     enabled: Boolean(process.env.OPENROUTER_API_KEY),
   },
 

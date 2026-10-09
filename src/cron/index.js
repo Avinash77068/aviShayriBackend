@@ -7,7 +7,7 @@ import { aiShayariService } from "../services/aiShayari.service.js";
 
 const jobs = [];
 
-const schedule = (expr, name, fn) => {
+const schedule = (expr, name, fn, options = {}) => {
   const job = cron.schedule(
     expr,
     async () => {
@@ -17,7 +17,7 @@ const schedule = (expr, name, fn) => {
         logger.error(`[cron:${name}] failed: ${err.message}`);
       }
     },
-    { scheduled: false }
+    { scheduled: false, ...options }
   );
   jobs.push({ name, job });
   return job;
@@ -31,7 +31,7 @@ export const startCronJobs = () => {
   schedule("*/30 * * * *", "trending", recomputeTrending); // every 30 min
   schedule("0 3 * * *", "cleanup", cleanupTokens); // daily at 03:00
   if (env.openRouter.enabled) {
-    // every 10 sec; skip a tick if the previous generation is still running
+    // Run once per configured local day; skip a tick if generation is still running.
     let generating = false;
     schedule(env.openRouter.cron, "ai-shayari", async () => {
       if (generating) return;
@@ -41,7 +41,7 @@ export const startCronJobs = () => {
       } finally {
         generating = false;
       }
-    });
+    }, { timezone: env.openRouter.timezone });
   }
   jobs.forEach(({ job }) => job.start());
   logger.info(`[cron] started ${jobs.length} scheduled jobs`);
